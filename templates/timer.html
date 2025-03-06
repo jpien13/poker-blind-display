@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Tournament Timer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container timer-container">
+        <h1 id="tournament-name">{{ tournament.name }}</h1>
+        
+        <div class="timer-display">
+            <div class="time-remaining">
+                <h2>Time Remaining</h2>
+                <div id="timer" class="timer">15:00</div>
+            </div>
+            
+            <div class="current-level">
+                <h2>Current Level</h2>
+                <div class="level-info">
+                    <div class="level-number">Level <span id="current-level">1</span></div>
+                    <div class="blinds">
+                        <div class="blind">Small Blind: <span id="current-small-blind">5</span></div>
+                        <div class="blind">Big Blind: <span id="current-big-blind">10</span></div>
+                        <div class="blind">Ante: <span id="current-ante">0</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="next-level">
+                <h2>Next Level</h2>
+                <div class="level-info">
+                    <div class="level-number">Level <span id="next-level">2</span></div>
+                    <div class="blinds">
+                        <div class="blind">Small Blind: <span id="next-small-blind">10</span></div>
+                        <div class="blind">Big Blind: <span id="next-big-blind">20</span></div>
+                        <div class="blind">Ante: <span id="next-ante">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timer-controls">
+            <button id="start-btn" class="btn control-btn">Start</button>
+            <button id="pause-btn" class="btn control-btn" disabled>Pause</button>
+            <button id="reset-btn" class="btn control-btn">Reset</button>
+            <button id="next-level-btn" class="btn control-btn">Next Level</button>
+            <button id="prev-level-btn" class="btn control-btn">Previous Level</button>
+        </div>
+        
+        <div class="home-link">
+            <a href="/" class="btn">Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Tournament data
+        const tournamentData = {{ tournament|tojson|safe }};
+        let currentLevelIndex = 0;
+        let timerInterval;
+        let timeRemaining = tournamentData.levels[0].duration * 60; // in seconds
+        let isPaused = true;
+        
+        // Elements
+        const timerEl = document.getElementById('timer');
+        const currentLevelEl = document.getElementById('current-level');
+        const currentSmallBlindEl = document.getElementById('current-small-blind');
+        const currentBigBlindEl = document.getElementById('current-big-blind');
+        const currentAnteEl = document.getElementById('current-ante');
+        const nextLevelEl = document.getElementById('next-level');
+        const nextSmallBlindEl = document.getElementById('next-small-blind');
+        const nextBigBlindEl = document.getElementById('next-big-blind');
+        const nextAnteEl = document.getElementById('next-ante');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const prevLevelBtn = document.getElementById('prev-level-btn');
+        
+        // Update display
+        function updateDisplay() {
+            const currentLevel = tournamentData.levels[currentLevelIndex];
+            const nextLevel = currentLevelIndex < tournamentData.levels.length - 1 
+                ? tournamentData.levels[currentLevelIndex + 1] 
+                : null;
+            
+            // Update current level
+            currentLevelEl.textContent = currentLevel.level;
+            currentSmallBlindEl.textContent = currentLevel.small_blind;
+            currentBigBlindEl.textContent = currentLevel.big_blind;
+            currentAnteEl.textContent = currentLevel.ante;
+            
+            // Update next level if available
+            if (nextLevel) {
+                nextLevelEl.textContent = nextLevel.level;
+                nextSmallBlindEl.textContent = nextLevel.small_blind;
+                nextBigBlindEl.textContent = nextLevel.big_blind;
+                nextAnteEl.textContent = nextLevel.ante;
+                document.querySelector('.next-level').style.display = 'block';
+            } else {
+                document.querySelector('.next-level').style.display = 'none';
+            }
+            
+            // Update timer
+            updateTimer();
+        }
+        
+        // Update timer display
+        function updateTimer() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Change color as time gets low
+            if (timeRemaining <= 60) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+        
+        // Start timer
+        function startTimer() {
+            isPaused = false;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimer();
+                } else {
+                    // Auto advance to next level
+                    if (currentLevelIndex < tournamentData.levels.length - 1) {
+                        goToNextLevel();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerEl.textContent = "FINISHED";
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Pause timer
+        function pauseTimer() {
+            isPaused = true;
+            clearInterval(timerInterval);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+        
+        // Reset current level
+        function resetTimer() {
+            pauseTimer();
+            timeRemaining = tournamentData.levels[currentLevelIndex].duration * 60;
+            updateTimer();
+        }
+        
+        // Go to next level
+        function goToNextLevel() {
+            if (currentLevelIndex < tournamentData.levels.length - 1) {
+                pauseTimer();
+                currentLevelIndex++;
+                timeRemaining = tournamentData.levels[currentLevelIndex].duration * 60;
+                updateDisplay();
+                
+                // Play sound alert
+                const audio = new Audio('/static/level-up.mp3');
+                audio.play().catch(e => console.log('Audio failed to play: ', e));
+                
+                // Start timer automatically
+                startTimer();
+            }
+        }
+        
+        // Go to previous level
+        function goToPrevLevel() {
+            if (currentLevelIndex > 0) {
+                pauseTimer();
+                currentLevelIndex--;
+                timeRemaining = tournamentData.levels[currentLevelIndex].duration * 60;
+                updateDisplay();
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        nextLevelBtn.addEventListener('click', goToNextLevel);
+        prevLevelBtn.addEventListener('click', goToPrevLevel);
+        
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>
