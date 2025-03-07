@@ -31,6 +31,12 @@
             margin-bottom: 10px;
         }
 
+        .break-display {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            color: #e74c3c;
+        }
+
         .blinds-display {
             font-size: 5rem;
             margin-bottom: 20px;
@@ -153,11 +159,19 @@
     <div class="container-fluid timer-container">
         <div class="row">
             <div class="col-12">
-                <div class="level-display">Level <span id="current-level">1</span></div>
-                <div class="blinds-display"><span id="small-blind">5</span>/<span id="big-blind">10</span></div>
+                <!-- Level/Break Display -->
+                <div id="level-container" class="level-display">Level <span id="current-level">1</span></div>
+                <div id="break-container" class="break-display d-none">BREAK</div>
+
+                <!-- Blinds Display -->
+                <div id="blinds-container" class="blinds-display"><span id="small-blind">5</span>/<span
+                        id="big-blind">10</span></div>
+
+                <!-- Timer -->
                 <div class="timer-display" id="timer">15:00</div>
-                <div class="next-blinds">Next: <span id="next-small-blind">10</span>/<span id="next-big-blind">20</span>
-                </div>
+
+                <!-- Next Level Info -->
+                <div class="next-blinds">Next: <span id="next-level-display">10/20</span></div>
             </div>
         </div>
 
@@ -214,42 +228,102 @@
     <script>
         // Tournament configuration
         let config = null;
-        let currentLevel = 1;
+        let currentLevelIndex = 0;  // Index in the array
         let timer = null;
         let timeRemaining = 0;
         let timerRunning = false;
+
+        // Process the configuration to calculate actual level numbers (excluding breaks)
+        function processLevels(levels) {
+            let actualLevelNumber = 1;
+
+            // Map with corrected level numbers
+            return levels.map((level, index) => {
+                if (level.is_break) {
+                    // For breaks, set a special property but don't increment level number
+                    return { ...level, actualLevelNumber: null };
+                } else {
+                    // For regular levels, set the actual sequential level number
+                    const result = { ...level, actualLevelNumber };
+                    actualLevelNumber++;
+                    return result;
+                }
+            });
+        }
 
         // Load configuration from server
         async function loadConfig() {
             try {
                 const response = await fetch('/api/config');
                 config = await response.json();
+
+                // Process levels to calculate actual level numbers
+                config.levels = processLevels(config.levels);
+
                 updateDisplay();
             } catch (error) {
                 console.error('Error loading configuration:', error);
             }
         }
 
+        // Find the next level or break (whatever comes next)
+        function findNextLevel(startIndex) {
+            if (!config || !config.levels) return null;
+
+            if (startIndex + 1 < config.levels.length) {
+                return config.levels[startIndex + 1];
+            }
+            return null;  // No more levels
+        }
+
         // Update the display with current level info
         function updateDisplay() {
             if (!config || !config.levels) return;
 
-            const levelData = config.levels[currentLevel - 1];
-            if (!levelData) return;
+            const currentLevel = config.levels[currentLevelIndex];
+            if (!currentLevel) return;
 
-            // Update level and blinds
-            document.getElementById('current-level').textContent = levelData.level;
-            document.getElementById('small-blind').textContent = levelData.small_blind;
-            document.getElementById('big-blind').textContent = levelData.big_blind;
+            // Check if the current segment is a break
+            if (currentLevel.is_break) {
+                // It's a break - show BREAK instead of Level X
+                document.getElementById('level-container').classList.add('d-none');
+                document.getElementById('break-container').classList.remove('d-none');
+
+                // During a break, hide the blinds
+                document.getElementById('blinds-container').classList.add('d-none');
+            } else {
+                // It's a regular level - show Level X with the actual level number
+                document.getElementById('level-container').classList.remove('d-none');
+                document.getElementById('break-container').classList.add('d-none');
+
+                // Show blinds for regular levels
+                document.getElementById('blinds-container').classList.remove('d-none');
+                document.getElementById('small-blind').textContent = currentLevel.small_blind;
+                document.getElementById('big-blind').textContent = currentLevel.big_blind;
+
+                // Update the level number display with the actual level number (excluding breaks)
+                document.getElementById('current-level').textContent = currentLevel.actualLevelNumber;
+            }
 
             // Set timer
-            timeRemaining = levelData.duration * 60;
+            timeRemaining = currentLevel.duration * 60;
             updateTimerDisplay();
 
-            // Update next level info
-            const nextLevelData = config.levels[currentLevel] || { small_blind: '-', big_blind: '-' };
-            document.getElementById('next-small-blind').textContent = nextLevelData.small_blind;
-            document.getElementById('next-big-blind').textContent = nextLevelData.big_blind;
+            // Update next level/break info
+            const nextLevel = findNextLevel(currentLevelIndex);
+
+            // Display for next level
+            if (!nextLevel) {
+                // No next level
+                document.getElementById('next-level-display').textContent = "END";
+            } else if (nextLevel.is_break) {
+                // Next is a break
+                document.getElementById('next-level-display').textContent = "BREAK";
+            } else {
+                // Next is a regular level
+                document.getElementById('next-level-display').textContent =
+                    `${nextLevel.small_blind}/${nextLevel.big_blind}`;
+            }
 
             // Update chip values
             document.getElementById('white-value').textContent = config.chips.white;
@@ -278,7 +352,7 @@
                     timerRunning = false;
 
                     // Automatically advance to next level if available
-                    if (currentLevel < config.levels.length) {
+                    if (currentLevelIndex < config.levels.length - 1) {
                         nextLevel();
                     }
                     return;
@@ -287,10 +361,10 @@
                 timeRemaining--;
                 updateTimerDisplay();
 
-                // Visual alert when time is running low (customizable warning time)
-                const warningTime = 30; // Time in seconds to start the warning (you can adjust this)
-                const warningColor = '#e74c3c'; // Red warning color (you can adjust this)
-                const normalColor = '#ffffff';  // Normal yellow color
+                // Visual alert when time is running low
+                const warningTime = 30; // Time in seconds to start the warning
+                const warningColor = '#e74c3c'; // Red warning color
+                const normalColor = '#ffffff';  // Normal white color
 
                 if (timeRemaining <= warningTime) {
                     // Flash effect when time is very low (last 10 seconds)
@@ -317,17 +391,17 @@
         function resetTimer() {
             pauseTimer();
             if (config && config.levels) {
-                timeRemaining = config.levels[currentLevel - 1].duration * 60;
+                timeRemaining = config.levels[currentLevelIndex].duration * 60;
                 updateTimerDisplay();
-                document.getElementById('timer').style.color = '#f1c40f';
+                document.getElementById('timer').style.color = '#ffffff';
             }
         }
 
         // Move to the next level
         function nextLevel() {
             pauseTimer();
-            if (currentLevel < config.levels.length) {
-                currentLevel++;
+            if (currentLevelIndex < config.levels.length - 1) {
+                currentLevelIndex++;
                 updateDisplay();
                 // Automatically start the timer for the next level
                 startTimer();
