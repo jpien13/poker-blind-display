@@ -1,19 +1,348 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poker Tournament Timer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #171717;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .timer-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .timer-display {
+            font-size: 20rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #e6e6e6;
+        }
+
+        .level-display {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .blinds-display {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: #3498db;
+        }
+
+        .next-blinds {
+            font-size: 3rem;
+            color: #95a5a6;
+            margin-bottom: 30px;
+        }
+
+        .chips-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+
+        .chip {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 5px dashed white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .white-chip {
+            background-color: white;
+            color: black;
+        }
+
+        .blue-chip {
+            background-color: #2980b9;
+        }
+
+        .red-chip {
+            background-color: #e74c3c;
+        }
+
+        .green-chip {
+            background-color: #27ae60;
+        }
+
+        .black-chip {
+            background-color: #111;
+        }
+
+        .controls {
+            margin-top: 30px;
+        }
+
+        .btn-huge {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+        }
+
+        .settings-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        /* Custom button colors - modify these to change button colors */
+        .start-button {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        .start-button:hover {
+            background-color: #27ae60;
+            border-color: #2ecc71;
+            color: white;
+        }
+
+        .pause-button {
+            background-color: #b5b5b5;
+            border-color: #b5b5b5;
+            color: white;
+        }
+
+        .pause-button:hover {
+            background-color: #b5b5b5;
+            border-color: #b5b5b5;
+            color: white;
+        }
+
+        .reset-button {
+            background-color: #b5b5b5;
+            border-color: #b5b5b5;
+            color: white;
+        }
+
+        .reset-button:hover {
+            background-color: #c0392b;
+            border-color: #e74c3c;
+            color: white;
+        }
+
+        .next-button {
+            background-color: #b5b5b5;
+            border-color: #b5b5b5;
+            color: white;
+        }
+
+        .next-button:hover {
+            background-color: #2980b9;
+            border-color: #3498db;
+            color: white;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Poker Tournament Timer</h1>
-        <div class="buttons">
-            <a href="/timer" class="btn">Start Timer</a>
-            <a href="/admin" class="btn">Admin Setup</a>
+    <div class="container-fluid timer-container">
+        <div class="row">
+            <div class="col-12">
+                <div class="level-display">Level <span id="current-level">1</span></div>
+                <div class="blinds-display"><span id="small-blind">5</span>/<span id="big-blind">10</span></div>
+                <div class="timer-display" id="timer">15:00</div>
+                <div class="next-blinds">Next: <span id="next-small-blind">10</span>/<span id="next-big-blind">20</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row controls">
+            <div class="col-12">
+                <button id="start-btn" class="btn btn-huge start-button me-2">Start</button>
+                <button id="pause-btn" class="btn btn-huge pause-button me-2">Pause</button>
+                <button id="reset-btn" class="btn btn-huge reset-button me-2">Reset</button>
+                <button id="next-level-btn" class="btn btn-huge next-button">Next Level</button>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="chips-container">
+                    <div class="chip-wrapper text-center">
+                        <div class="chip white-chip"><span id="white-value">1</span></div>
+                        <div class="mt-2">White</div>
+                    </div>
+                    <div class="chip-wrapper text-center">
+                        <div class="chip blue-chip"><span id="blue-value">5</span></div>
+                        <div class="mt-2">Blue</div>
+                    </div>
+                    <div class="chip-wrapper text-center">
+                        <div class="chip red-chip"><span id="red-value">25</span></div>
+                        <div class="mt-2">Red</div>
+                    </div>
+                    <div class="chip-wrapper text-center">
+                        <div class="chip green-chip"><span id="green-value">100</span></div>
+                        <div class="mt-2">Green</div>
+                    </div>
+                    <div class="chip-wrapper text-center">
+                        <div class="chip black-chip"><span id="black-value">500</span></div>
+                        <div class="mt-2">Black</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <a href="/settings" class="btn btn-secondary settings-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-gear"
+            viewBox="0 0 16 16">
+            <path
+                d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
+            <path
+                d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z" />
+        </svg>
+        Settings
+    </a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tournament configuration
+        let config = null;
+        let currentLevel = 1;
+        let timer = null;
+        let timeRemaining = 0;
+        let timerRunning = false;
+
+        // Load configuration from server
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                config = await response.json();
+                updateDisplay();
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+            }
+        }
+
+        // Update the display with current level info
+        function updateDisplay() {
+            if (!config || !config.levels) return;
+
+            const levelData = config.levels[currentLevel - 1];
+            if (!levelData) return;
+
+            // Update level and blinds
+            document.getElementById('current-level').textContent = levelData.level;
+            document.getElementById('small-blind').textContent = levelData.small_blind;
+            document.getElementById('big-blind').textContent = levelData.big_blind;
+
+            // Set timer
+            timeRemaining = levelData.duration * 60;
+            updateTimerDisplay();
+
+            // Update next level info
+            const nextLevelData = config.levels[currentLevel] || { small_blind: '-', big_blind: '-' };
+            document.getElementById('next-small-blind').textContent = nextLevelData.small_blind;
+            document.getElementById('next-big-blind').textContent = nextLevelData.big_blind;
+
+            // Update chip values
+            document.getElementById('white-value').textContent = config.chips.white;
+            document.getElementById('blue-value').textContent = config.chips.blue;
+            document.getElementById('red-value').textContent = config.chips.red;
+            document.getElementById('green-value').textContent = config.chips.green;
+            document.getElementById('black-value').textContent = config.chips.black;
+        }
+
+        // Update the timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent =
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Start the timer
+        function startTimer() {
+            if (timerRunning) return;
+
+            timerRunning = true;
+            timer = setInterval(() => {
+                if (timeRemaining <= 0) {
+                    clearInterval(timer);
+                    timerRunning = false;
+
+                    // Automatically advance to next level if available
+                    if (currentLevel < config.levels.length) {
+                        nextLevel();
+                    }
+                    return;
+                }
+
+                timeRemaining--;
+                updateTimerDisplay();
+
+                // Visual alert when time is running low (customizable warning time)
+                const warningTime = 30; // Time in seconds to start the warning (you can adjust this)
+                const warningColor = '#e74c3c'; // Red warning color (you can adjust this)
+                const normalColor = '#ffffff';  // Normal yellow color
+
+                if (timeRemaining <= warningTime) {
+                    // Flash effect when time is very low (last 10 seconds)
+                    if (timeRemaining <= 10 && timeRemaining % 2 === 0) {
+                        document.getElementById('timer').style.color = warningColor;
+                    } else if (timeRemaining <= 10) {
+                        document.getElementById('timer').style.color = 'white';
+                    } else {
+                        document.getElementById('timer').style.color = warningColor;
+                    }
+                } else {
+                    document.getElementById('timer').style.color = normalColor;
+                }
+            }, 1000);
+        }
+
+        // Pause the timer
+        function pauseTimer() {
+            clearInterval(timer);
+            timerRunning = false;
+        }
+
+        // Reset the current level
+        function resetTimer() {
+            pauseTimer();
+            if (config && config.levels) {
+                timeRemaining = config.levels[currentLevel - 1].duration * 60;
+                updateTimerDisplay();
+                document.getElementById('timer').style.color = '#f1c40f';
+            }
+        }
+
+        // Move to the next level
+        function nextLevel() {
+            pauseTimer();
+            if (currentLevel < config.levels.length) {
+                currentLevel++;
+                updateDisplay();
+                // Automatically start the timer for the next level
+                startTimer();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('start-btn').addEventListener('click', startTimer);
+        document.getElementById('pause-btn').addEventListener('click', pauseTimer);
+        document.getElementById('reset-btn').addEventListener('click', resetTimer);
+        document.getElementById('next-level-btn').addEventListener('click', nextLevel);
+
+        // Load configuration on page load
+        document.addEventListener('DOMContentLoaded', loadConfig);
+    </script>
 </body>
+
 </html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Timer Settings</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #34495e;
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            padding-bottom: 100px;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            background-color: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .chip-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            border: 3px dashed white;
+        }
+
+        .white-chip {
+            background-color: white;
+            color: black;
+        }
+
+        .blue-chip {
+            background-color: #2980b9;
+        }
+
+        .red-chip {
+            background-color: #e74c3c;
+        }
+
+        .green-chip {
+            background-color: #27ae60;
+        }
+
+        .black-chip {
+            background-color: #111;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2c3e50;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .levels-table th,
+        .levels-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn-add-level,
+        .btn-remove-level {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Poker Tournament Timer Settings</h1>
+    </div>
+
+    <div class="container settings-container">
+        <form method="POST" action="/settings">
+            <!-- Chip Values Section -->
+            <div class="settings-section">
+                <h2 class="section-title">Chip Values</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="chip-preview white-chip">
+                                <span id="white-preview">1</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="white_value" class="form-label">White Chip Value</label>
+                                <input type="number" class="form-control" id="white_value" name="white_value"
+                                    value="{{ config.chips.white }}" min="1"
+                                    oninput="document.getElementById('white-preview').textContent = this.value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="chip-preview blue-chip">
+                                <span id="blue-preview">5</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="blue_value" class="form-label">Blue Chip Value</label>
+                                <input type="number" class="form-control" id="blue_value" name="blue_value"
+                                    value="{{ config.chips.blue }}" min="1"
+                                    oninput="document.getElementById('blue-preview').textContent = this.value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="chip-preview red-chip">
+                                <span id="red-preview">25</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="red_value" class="form-label">Red Chip Value</label>
+                                <input type="number" class="form-control" id="red_value" name="red_value"
+                                    value="{{ config.chips.red }}" min="1"
+                                    oninput="document.getElementById('red-preview').textContent = this.value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="chip-preview green-chip">
+                                <span id="green-preview">100</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="green_value" class="form-label">Green Chip Value</label>
+                                <input type="number" class="form-control" id="green_value" name="green_value"
+                                    value="{{ config.chips.green }}" min="1"
+                                    oninput="document.getElementById('green-preview').textContent = this.value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="chip-preview black-chip">
+                                <span id="black-preview">500</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="black_value" class="form-label">Black Chip Value</label>
+                                <input type="number" class="form-control" id="black_value" name="black_value"
+                                    value="{{ config.chips.black }}" min="1"
+                                    oninput="document.getElementById('black-preview').textContent = this.value">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Levels Section -->
+            <div class="settings-section">
+                <h2 class="section-title">Tournament Levels</h2>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-dark levels-table" id="levels-table">
+                        <thead>
+                            <tr>
+                                <th>Level</th>
+                                <th>Small Blind</th>
+                                <th>Big Blind</th>
+                                <th>Duration (minutes)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="levels-tbody">
+                            {% for level in config.levels %}
+                            <tr class="level-row">
+                                <td>{{ level.level }}</td>
+                                <td>
+                                    <input type="number" class="form-control" name="small_blind_{{ level.level }}"
+                                        value="{{ level.small_blind }}" min="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" name="big_blind_{{ level.level }}"
+                                        value="{{ level.big_blind }}" min="1" required>
+                                </td>
+                                <td>
+                                    <input type="number" class="form-control" name="duration_{{ level.level }}"
+                                        value="{{ level.duration }}" min="1" max="120" required>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" id="add-level-btn" class="btn btn-success">
+                        <span class="btn-add-level">+</span> Add Level
+                    </button>
+                    <button type="button" id="remove-level-btn" class="btn btn-danger">
+                        <span class="btn-remove-level">-</span> Remove Level
+                    </button>
+                </div>
+
+                <!-- Hidden input to track the number of levels -->
+                <input type="hidden" id="level_count" name="level_count" value="{{ config.levels | length }}">
+            </div>
+
+            <!-- Submission Buttons -->
+            <div class="footer">
+                <button type="submit" class="btn btn-primary btn-lg me-2">Save Settings</button>
+                <a href="/" class="btn btn-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize values
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set initial chip preview values
+            document.getElementById('white-preview').textContent = document.getElementById('white_value').value;
+            document.getElementById('blue-preview').textContent = document.getElementById('blue_value').value;
+            document.getElementById('red-preview').textContent = document.getElementById('red_value').value;
+            document.getElementById('green-preview').textContent = document.getElementById('green_value').value;
+            document.getElementById('black-preview').textContent = document.getElementById('black_value').value;
+        });
+
+        // Add a new level
+        document.getElementById('add-level-btn').addEventListener('click', function () {
+            const levelRows = document.querySelectorAll('.level-row');
+            const newLevelNumber = levelRows.length + 1;
+
+            // Get the last level's values for reference
+            const lastLevel = levelRows[levelRows.length - 1];
+            const lastSmallBlind = parseInt(lastLevel.querySelector('input[name^="small_blind_"]').value) || 0;
+            const lastBigBlind = parseInt(lastLevel.querySelector('input[name^="big_blind_"]').value) || 0;
+
+            // Calculate new blinds (typically 1.5-2x the previous level)
+            const newSmallBlind = Math.round(lastSmallBlind * 1.5);
+            const newBigBlind = Math.round(lastBigBlind * 1.5);
+            const duration = lastLevel.querySelector('input[name^="duration_"]').value || 15;
+
+            // Create new row
+            const tbody = document.getElementById('levels-tbody');
+            const newRow = document.createElement('tr');
+            newRow.className = 'level-row';
+            newRow.innerHTML = `
+                <td>${newLevelNumber}</td>
+                <td>
+                    <input type="number" class="form-control" name="small_blind_${newLevelNumber}" 
+                        value="${newSmallBlind}" min="1" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="big_blind_${newLevelNumber}" 
+                        value="${newBigBlind}" min="1" required>
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="duration_${newLevelNumber}" 
+                        value="${duration}" min="1" max="120" required>
+                </td>
+            `;
+
+            tbody.appendChild(newRow);
+
+            // Update level count
+            document.getElementById('level_count').value = newLevelNumber;
+        });
+
+        // Remove the last level
+        document.getElementById('remove-level-btn').addEventListener('click', function () {
+            const levelRows = document.querySelectorAll('.level-row');
+            if (levelRows.length > 1) {
+                const tbody = document.getElementById('levels-tbody');
+                tbody.removeChild(levelRows[levelRows.length - 1]);
+
+                // Update level count
+                document.getElementById('level_count').value = levelRows.length - 1;
+            } else {
+                alert('You must have at least one level.');
+            }
+        });
+    </script>
+</body>
+
+</html>
