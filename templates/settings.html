@@ -198,6 +198,7 @@
                                 <th>Small Blind</th>
                                 <th>Big Blind</th>
                                 <th>Duration (minutes)</th>
+                                <th>Break</th>
                             </tr>
                         </thead>
                         <tbody id="levels-tbody">
@@ -206,15 +207,25 @@
                                 <td>{{ level.level }}</td>
                                 <td>
                                     <input type="number" class="form-control" name="small_blind_{{ level.level }}"
-                                        value="{{ level.small_blind }}" min="1" required>
+                                        value="{{ level.small_blind }}" min="1" required {% if level.is_break
+                                        %}disabled{% endif %}>
                                 </td>
                                 <td>
                                     <input type="number" class="form-control" name="big_blind_{{ level.level }}"
-                                        value="{{ level.big_blind }}" min="1" required>
+                                        value="{{ level.big_blind }}" min="1" required {% if level.is_break %}disabled{%
+                                        endif %}>
                                 </td>
                                 <td>
                                     <input type="number" class="form-control" name="duration_{{ level.level }}"
                                         value="{{ level.duration }}" min="1" max="120" required>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input break-toggle" type="checkbox"
+                                            name="is_break_{{ level.level }}" id="is_break_{{ level.level }}" {% if
+                                            level.is_break %}checked{% endif %}
+                                            onchange="toggleBreak(this, {{ level.level }})">
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -256,6 +267,39 @@
             document.getElementById('black-preview').textContent = document.getElementById('black_value').value;
         });
 
+        // Function to toggle break status
+        function toggleBreak(checkbox, levelId) {
+            const row = checkbox.closest('tr');
+            const smallBlindInput = row.querySelector(`input[name="small_blind_${levelId}"]`);
+            const bigBlindInput = row.querySelector(`input[name="big_blind_${levelId}"]`);
+
+            if (checkbox.checked) {
+                // If it's a break, disable and save the current values
+                smallBlindInput.disabled = true;
+                bigBlindInput.disabled = true;
+                smallBlindInput.dataset.oldValue = smallBlindInput.value;
+                bigBlindInput.dataset.oldValue = bigBlindInput.value;
+
+                // Set to 0 for breaks
+                smallBlindInput.value = 0;
+                bigBlindInput.value = 0;
+            } else {
+                // If no longer a break, enable and restore values
+                smallBlindInput.disabled = false;
+                bigBlindInput.disabled = false;
+
+                // Restore old values if they exist
+                if (smallBlindInput.dataset.oldValue) {
+                    smallBlindInput.value = smallBlindInput.dataset.oldValue;
+                    delete smallBlindInput.dataset.oldValue;
+                }
+                if (bigBlindInput.dataset.oldValue) {
+                    bigBlindInput.value = bigBlindInput.dataset.oldValue;
+                    delete bigBlindInput.dataset.oldValue;
+                }
+            }
+        }
+
         // Add a new level
         document.getElementById('add-level-btn').addEventListener('click', function () {
             const levelRows = document.querySelectorAll('.level-row');
@@ -288,6 +332,13 @@
                 <td>
                     <input type="number" class="form-control" name="duration_${newLevelNumber}" 
                         value="${duration}" min="1" max="120" required>
+                </td>
+                <td class="text-center">
+                    <div class="form-check d-flex justify-content-center">
+                        <input class="form-check-input break-toggle" type="checkbox" 
+                            name="is_break_${newLevelNumber}" id="is_break_${newLevelNumber}"
+                            onchange="toggleBreak(this, ${newLevelNumber})">
+                    </div>
                 </td>
             `;
 

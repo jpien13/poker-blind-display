@@ -7,16 +7,16 @@ app = Flask(__name__)
 # Default configuration
 DEFAULT_CONFIG = {
     "levels": [
-        {"level": 1, "small_blind": 5, "big_blind": 10, "duration": 15},
-        {"level": 2, "small_blind": 10, "big_blind": 20, "duration": 15},
-        {"level": 3, "small_blind": 15, "big_blind": 30, "duration": 15},
-        {"level": 4, "small_blind": 25, "big_blind": 50, "duration": 15},
-        {"level": 5, "small_blind": 50, "big_blind": 100, "duration": 15},
-        {"level": 6, "small_blind": 75, "big_blind": 150, "duration": 15},
-        {"level": 7, "small_blind": 100, "big_blind": 200, "duration": 15},
-        {"level": 8, "small_blind": 200, "big_blind": 400, "duration": 15},
-        {"level": 9, "small_blind": 300, "big_blind": 600, "duration": 15},
-        {"level": 10, "small_blind": 500, "big_blind": 1000, "duration": 15}
+        {"level": 1, "small_blind": 5, "big_blind": 10, "duration": 15, "is_break": False},
+        {"level": 2, "small_blind": 10, "big_blind": 20, "duration": 15, "is_break": False},
+        {"level": 3, "small_blind": 15, "big_blind": 30, "duration": 15, "is_break": False},
+        {"level": 4, "small_blind": 25, "big_blind": 50, "duration": 15, "is_break": False},
+        {"level": 5, "small_blind": 50, "big_blind": 100, "duration": 15, "is_break": False},
+        {"level": 6, "small_blind": 75, "big_blind": 150, "duration": 15, "is_break": False},
+        {"level": 7, "small_blind": 100, "big_blind": 200, "duration": 15, "is_break": False},
+        {"level": 8, "small_blind": 200, "big_blind": 400, "duration": 15, "is_break": False},
+        {"level": 9, "small_blind": 300, "big_blind": 600, "duration": 15, "is_break": False},
+        {"level": 10, "small_blind": 500, "big_blind": 1000, "duration": 15, "is_break": False}
     ],
     "chips": {
         "white": 1,
@@ -70,11 +70,13 @@ def settings():
         level_count = int(request.form.get('level_count', 10))
         
         for i in range(1, level_count + 1):
+            is_break = request.form.get(f'is_break_{i}') == 'on'
             level = {
                 "level": i,
                 "small_blind": int(request.form.get(f'small_blind_{i}', 0)),
                 "big_blind": int(request.form.get(f'big_blind_{i}', 0)),
-                "duration": int(request.form.get(f'duration_{i}', 15))
+                "duration": int(request.form.get(f'duration_{i}', 15)),
+                "is_break": is_break
             }
             levels.append(level)
         
